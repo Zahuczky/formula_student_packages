@@ -130,6 +130,7 @@ class ConeDetector(Node):
         y_id = 1
         b_id = 2
         o_id = 3
+        
         for det in detections:
             if (det[0]=='Yellow'):
                 yellow_array.append([float(y_id), det[1], det[2], float(det[3]), float(det[4])])
@@ -137,7 +138,7 @@ class ConeDetector(Node):
             elif (det[0]=='Blue'):
                 blue_array.append([float(b_id), det[1], det[2], float(det[3]),float(det[4])])
                 result_array.append([float(b_id), det[1], det[2], float(det[3]),float(det[4])])
-            elif (det[0]=='Orange'):
+            elif (det[0]=='Small_orange'):
                 orange_array.append([float(o_id), det[1], det[2], float(det[3]),float(det[4])])
                 result_array.append([float(o_id), det[1], det[2], float(det[3]),float(det[4])])
         

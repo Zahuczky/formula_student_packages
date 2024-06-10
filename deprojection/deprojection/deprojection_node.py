@@ -7,7 +7,6 @@ from scipy.spatial.transform import Rotation
 import time
 
 class Deproject:
-    #This part is copied from autonom_master_repo 
     def __init__(self, roll_deg=0, pitch_deg=-2.0, yaw_deg=0, height=1.602, 
                  K_vec=[335.20611572265625, 0.0, 331.85467529296875, 0.0, 335.20611572265625, 183.79928588867188, 0.0, 0.0, 1.0],
                  R_vec=[np.pi / 2, - np.pi / 2, 0]):
@@ -86,14 +85,17 @@ class DeprojectionNode(Node):
             self.listener_callback,
             10
         )
-        #topic names:
         self.publisher_yellow = self.create_publisher(MarkerArray, 'yellow_cones', 10)
+        self.publisher_orange = self.create_publisher(MarkerArray, 'orange_cones', 10)
         self.publisher_blue = self.create_publisher(MarkerArray, 'blue_cones', 10)
+
         self.markers_yellow = {}
+        self.markers_orange = {}
         self.markers_blue = {}
         self.active_marker_ids_yellow = set()
+        self.active_marker_ids_orange = set()
         self.active_marker_ids_blue = set()
-        self.timer = self.create_timer(0.2, self.timer_callback)
+        self.timer = self.create_timer(0.1, self.timer_callback)
 
     def listener_callback(self, msg):
         if len(msg.data) % 5 != 0:
@@ -116,14 +118,18 @@ class DeprojectionNode(Node):
                 'position': point,
                 'timestamp': current_time
             }
-            #TOD0: Add other ID 
+            #print(cone_id)
             if cone_id == 1:
                 self.markers_yellow[marker_id] = marker_info
+            if cone_id == 3: 
+                self.markers_orange[marker_id] = marker_info
             elif cone_id == 2:
                 self.markers_blue[marker_id] = marker_info
+            
 
     def timer_callback(self):
         self.publish_markers(self.markers_yellow, self.publisher_yellow, self.active_marker_ids_yellow)
+        self.publish_markers(self.markers_orange, self.publisher_orange, self.active_marker_ids_orange)
         self.publish_markers(self.markers_blue, self.publisher_blue, self.active_marker_ids_blue)
 
     def publish_markers(self, markers, publisher, active_marker_ids):
@@ -133,13 +139,13 @@ class DeprojectionNode(Node):
         used_marker_ids = set()
 
         for marker_id, marker_info in list(markers.items()):
-            if current_time - marker_info['timestamp'] > 0.2: #if older than 0.2 it clears the cones, this causes the ghost effect
+            if current_time - marker_info['timestamp'] > 0.1:
                 del markers[marker_id]
             else:
                 keep_marker = True
                 for new_marker_id, new_marker_info in new_markers.items():
                     distance = np.linalg.norm(np.array(marker_info['position']) - np.array(new_marker_info['position']))
-                    if distance < 0.2: #if it's closer than 0.2 it will delete it, but that makes no sense so I'll delete it
+                    if distance < 0.4: #delet
                         keep_marker = False
                         break
                 if keep_marker:
@@ -160,10 +166,17 @@ class DeprojectionNode(Node):
                 marker.color.r = 1.0
                 marker.color.g = 1.0
                 marker.color.b = 0.3
-            else:
+            
+            if publisher == self.active_marker_ids_blue:
                 marker.color.r = 0.0
                 marker.color.g = 0.0
                 marker.color.b = 1.0
+            
+            if publisher == self.publisher_orange:
+                marker.color.r = 1.0
+                marker.color.g = 0.5
+                marker.color.b = 0.1
+            
             marker.pose.position.x = marker_info['position'][0]
             marker.pose.position.y = marker_info['position'][1]
             marker.pose.position.z = marker_info['position'][2]
