@@ -167,7 +167,7 @@ class DeprojectionNode(Node):
                 marker.color.g = 1.0
                 marker.color.b = 0.3
             
-            if publisher == self.active_marker_ids_blue:
+            if publisher == self.publisher_blue:
                 marker.color.r = 0.0
                 marker.color.g = 0.0
                 marker.color.b = 1.0
