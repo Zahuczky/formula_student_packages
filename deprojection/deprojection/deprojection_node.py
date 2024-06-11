@@ -88,6 +88,7 @@ class DeprojectionNode(Node):
         self.publisher_yellow = self.create_publisher(MarkerArray, 'yellow_cones', 10)
         self.publisher_orange = self.create_publisher(MarkerArray, 'orange_cones', 10)
         self.publisher_blue = self.create_publisher(MarkerArray, 'blue_cones', 10)
+        self.pub_proj_coords = self.create_publisher(Float32MultiArray, 'pub_proj_coords', 10)
 
         self.markers_yellow = {}
         self.markers_orange = {}
@@ -102,6 +103,8 @@ class DeprojectionNode(Node):
             return
 
         current_time = time.time()
+        pub_msg = Float32MultiArray()
+
         for i in range(0, len(msg.data), 5):
             try:
                 cone_id = int(msg.data[i])
@@ -118,14 +121,19 @@ class DeprojectionNode(Node):
                 'position': point,
                 'timestamp': current_time
             }
-            #print(cone_id)
+            
+            pub_msg.data.append(cone_id)
+            pub_msg.data.append(point[0])
+            pub_msg.data.append(point[1])
+
             if cone_id == 1:
                 self.markers_yellow[marker_id] = marker_info
-            if cone_id == 3: 
+            elif cone_id == 3:
                 self.markers_orange[marker_id] = marker_info
             elif cone_id == 2:
                 self.markers_blue[marker_id] = marker_info
-            
+        
+        self.pub_proj_coords.publish(pub_msg)
 
     def timer_callback(self):
         self.publish_markers(self.markers_yellow, self.publisher_yellow, self.active_marker_ids_yellow)
@@ -145,7 +153,7 @@ class DeprojectionNode(Node):
                 keep_marker = True
                 for new_marker_id, new_marker_info in new_markers.items():
                     distance = np.linalg.norm(np.array(marker_info['position']) - np.array(new_marker_info['position']))
-                    if distance < 0.4: #delet
+                    if distance < 0.4:
                         keep_marker = False
                         break
                 if keep_marker:
