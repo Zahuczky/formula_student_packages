@@ -5,7 +5,7 @@ from visualization_msgs.msg import Marker, MarkerArray
 import numpy as np
 from scipy.spatial.transform import Rotation
 import time
-
+# ros2 run deprojection deprojection_node
 class Deproject:
     def __init__(self, roll_deg=0, pitch_deg=-2.0, yaw_deg=0, height=1.602, 
                  K_vec=[335.20611572265625, 0.0, 331.85467529296875, 0.0, 335.20611572265625, 183.79928588867188, 0.0, 0.0, 1.0],
